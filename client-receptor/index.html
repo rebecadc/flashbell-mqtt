@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuário (Alerta Acessível)</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #222; color: white; font-family: sans-serif; transition: background-color 0.1s; margin: 0; }
+        #alerta { font-size: 55px; font-weight: bold; display: none; text-align: center; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+</head>
+<body>
+    <div id="statusTxt">Aguardando conexão com o broker...</div>
+    <div id="alerta">ALGUÉM ESTÁ NA PORTA!</div>
+    <div id="log" style="position: absolute; bottom: 20px; font-size: 14px; color: #aaa;"></div>
+
+    <script>
+        const client = mqtt.connect('ws://localhost:9001');
+        const corpo = document.body;
+        const alertaTxt = document.getElementById('alerta');
+        const statusTxt = document.getElementById('statusTxt');
+        const log = document.getElementById('log');
+        let piscando = false;
+
+        client.on('connect', () => {
+            statusTxt.innerText = "Monitorando Casa (MQTT Ativo)...";
+            // Subscreve no tópico de eventos da campainha
+            client.subscribe('casa/campainha');
+        });
+
+        client.on('message', (topic, message) => {
+            if(topic === 'casa/campainha' && !piscando) {
+                const payload = JSON.parse(message.toString());
+                const latencia = Date.now() - payload.timestamp;
+                log.innerText = `Sinal recebido via Broker em: ${latencia}ms`;
+                dispararAlertaAcessivel();
+            }
+        });
+
+        function dispararAlertaAcessivel() {
+            piscando = true;
+            statusTxt.style.display = 'none';
+            alertaTxt.style.display = 'block';
+
+            let flashes = 0;
+            const loop = setInterval(() => {
+                corpo.style.backgroundColor = (flashes % 2 === 0) ? '#ff0000' : '#ffffff';
+                alertaTxt.style.color = (flashes % 2 === 0) ? '#ffffff' : '#ff0000';
+                flashes++;
+
+                if(flashes >= 25) { // Cerca de 5 segundos de alerta
+                    clearInterval(loop);
+                    corpo.style.backgroundColor = '#222';
+                    alertaTxt.style.display = 'none';
+                    statusTxt.style.display = 'block';
+                    piscando = false;
+                }
+            }, 200);
+        }
+    </script>
+</body>
+</html>

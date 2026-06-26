@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Visitante (Botão MQTT)</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #eef2f3; font-family: sans-serif; }
+        button { padding: 25px 50px; font-size: 22px; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button:disabled { background-color: #bbb; cursor: not-allowed; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+</head>
+<body>
+    <h1>Campainha IoT - Lado de Fora</h1>
+    <h3 id="status" style="color: orange;">Conectando ao Broker...</h3>
+    <button id="btnTocar" disabled>Tocar Campainha</button>
+
+    <script>
+        // Conecta via WebSockets na porta exposta do Broker Mosquitto
+        const client = mqtt.connect('ws://localhost:9001');
+        const btn = document.getElementById('btnTocar');
+        const status = document.getElementById('status');
+
+        client.on('connect', () => {
+            status.innerText = "Status: Conectado ao Broker MQTT!";
+            status.style.color = "green";
+            btn.disabled = false;
+        });
+
+        btn.onclick = () => {
+            const payload = {
+                evento: "campainha_pressionada",
+                timestamp: Date.now()
+            };
+            
+            // Publica o payload stringificado no tópico configurado
+            client.publish('casa/campainha', JSON.stringify(payload));
+            
+            btn.disabled = true;
+            btn.innerText = "Enviando sinal...";
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerText = "Tocar Campainha";
+            }, 2000);
+        };
+    </script>
+</body>
+</html>

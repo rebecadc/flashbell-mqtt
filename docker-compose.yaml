@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  broker-mqtt:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1884:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - rede-iot
+
+  client-emissor:
+    build: ./client-emissor
+    ports:
+      - "8081:80"
+    networks:
+      - rede-iot
+
+  client-receptor:
+    build: ./client-receptor
+    ports:
+      - "8082:80"
+    networks:
+      - rede-iot
+
+networks:
+  rede-iot:
+    driver: bridge
