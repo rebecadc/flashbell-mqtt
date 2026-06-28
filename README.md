@@ -6,7 +6,7 @@ Sistema de campainha inteligente IoT com alerta visual para pessoas com deficiê
 
 ```
 ┌──────────────┐      MQTT       ┌──────────────┐
-│  Visitante    │── WebSocket ──▶│   Broker     │
+│  Visitante   │ ── WebSocket ──▶│   Broker     │
 │  (Emissor)   │                 │  Mosquitto   │
 │  :8081       │                 │  :1883/:9001 │
 └──────────────┘                 └──────┬───────┘
